@@ -152,7 +152,7 @@ function DanceEditor({ save, dance }: { save: SaveFile; dance: number }) {
   );
 }
 
-function unlock(save: SaveFile, uid: string, unlocked: boolean) {
+function unlock(save: SaveFile, uid: string, unlocked: boolean): number {
   const idx = save.unlockables.findIndex((x) => x.uid === uid);
   if (idx === -1) {
     // Also sucks
@@ -164,23 +164,33 @@ function unlock(save: SaveFile, uid: string, unlocked: boolean) {
     const br = new BinaryReader(bw.toBytes());
     const newUnlockable = new UnlockableSaveData(br);
     save.unlockables.push(newUnlockable);
+    return save.unlockables.length - 1;
   } else {
     save.unlockables[idx].hasSeen = unlocked;
     save.unlockables[idx].isUnlocked = unlocked;
+    return idx;
   }
 }
 
-function UnlockableEditor({ save, uid }: { save: SaveFile; uid: string }) {
+function UnlockableEditor({
+  save,
+  uid,
+  forceRefresh
+}: {
+  save: SaveFile;
+  uid: string;
+  forceRefresh: number;
+}) {
   const [idx, setIdx] = React.useState(-1);
   React.useEffect(() => {
     setIdx(save.unlockables.findIndex((x) => x.uid === uid));
-  }, [uid, save.unlockables]);
+  }, [uid, save.unlockables, forceRefresh]);
 
   const isUnlocked = useArrayBinding(
     idx,
     () => save.unlockables[idx]?.isUnlocked ?? false,
     (v) => {
-      unlock(save, uid, v);
+      setIdx(unlock(save, uid, v));
     }
   );
 
@@ -259,7 +269,12 @@ function UnlockableSection({
       <br />
       {entries.map((x) => (
         <>
-          <UnlockableEditor key={x.uid} save={save} uid={x.uid} />
+          <UnlockableEditor
+            key={x.uid}
+            save={save}
+            uid={x.uid}
+            forceRefresh={forceRefresh}
+          />
           <br />
         </>
       ))}
