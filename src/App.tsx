@@ -27,6 +27,11 @@ function App() {
             </code>
           </p>
 
+          <p>
+            Report issues on{" "}
+            <a href="https://github.com/NotNite/brc-save-editor">GitHub</a>.
+          </p>
+
           <input
             type="file"
             name="file"

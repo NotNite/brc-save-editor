@@ -12,8 +12,12 @@ import {
   getStageName,
   getStoryObjectiveName
 } from "./lib/lang";
-import { useArrayBinding, useBinding } from "./lib/misc";
-import SaveFile, { CharacterProgress, UnlockableSaveData } from "./lib/save";
+import { Vector3, useArrayBinding, useBinding } from "./lib/misc";
+import SaveFile, {
+  CharacterProgress,
+  StageProgress,
+  UnlockableSaveData
+} from "./lib/save";
 import {
   Characters,
   MoveStyle,
@@ -134,6 +138,122 @@ function CharacterEditor({
           binding={moveStyleSkin}
         />
         <label htmlFor={`moveStyleSkin-${character}`}>Move style skin</label>
+      </div>
+    );
+  }
+}
+
+function StageEditor({ save, stage }: { save: SaveFile; stage: Stage }) {
+  const [idx, setIdx] = React.useState(-1);
+  React.useEffect(() => {
+    setIdx(save.totalStageProgress.findIndex((x) => x.stageID === stage));
+  }, [stage, save.totalStageProgress]);
+
+  const reputation = useArrayBinding(
+    idx,
+    () => save.totalStageProgress[idx]?.reputation ?? 0,
+    (v) => (save.totalStageProgress[idx].reputation = v)
+  );
+  const highestCombo = useArrayBinding(
+    idx,
+    () => save.totalStageProgress[idx]?.highestCombo ?? 0,
+    (v) => (save.totalStageProgress[idx].highestCombo = v)
+  );
+  const policeAllowed = useArrayBinding(
+    idx,
+    () => save.totalStageProgress[idx]?.policeAllowed ?? false,
+    (v) => (save.totalStageProgress[idx].policeAllowed = v)
+  );
+  const mapFound = useArrayBinding(
+    idx,
+    () => save.totalStageProgress[idx]?.mapFound ?? false,
+    (v) => (save.totalStageProgress[idx].mapFound = v)
+  );
+  const taxiFound = useArrayBinding(
+    idx,
+    () => save.totalStageProgress[idx]?.taxiFound ?? false,
+    (v) => (save.totalStageProgress[idx].taxiFound = v)
+  );
+  const graffitiBombedAchievementUnlocked = useArrayBinding(
+    idx,
+    () =>
+      save.totalStageProgress[idx]?.graffitiBombedAchievementUnlocked ?? false,
+    (v) => (save.totalStageProgress[idx].graffitiBombedAchievementUnlocked = v)
+  );
+
+  if (idx === -1) {
+    return (
+      <div>
+        <p>No stage data found.</p>
+        <button
+          onClick={() => {
+            const bw = new BinaryWriter();
+            save.totalStageProgress[0].write(bw);
+            const br = new BinaryReader(bw.toBytes());
+            const newStage = new StageProgress(br);
+
+            newStage.stageID = stage;
+            newStage.reputation = 0;
+            newStage.alreadyVisited = false;
+            newStage.progressables = [];
+            newStage.highestCombo = 0;
+            newStage.policeAllowed = false;
+            newStage.mapFound = false;
+            newStage.taxiFound = false;
+            newStage.crewCounter = 0;
+            newStage.respawnPos = Vector3.zero;
+            newStage.respawnRot = Vector3.zero;
+            newStage.graffitiBombedAchievementUnlocked = false;
+
+            save.totalStageProgress.push(newStage);
+            setIdx(save.totalStageProgress.length - 1);
+          }}
+        >
+          Create entry
+        </button>
+      </div>
+    );
+  } else {
+    return (
+      <div>
+        <BindingNumberInput id={`reputation-${stage}`} binding={reputation} />
+        <label htmlFor={`reputation-${stage}`}>Reputation</label>
+
+        <br />
+
+        <BindingNumberInput
+          id={`highestCombo-${stage}`}
+          binding={highestCombo}
+        />
+        <label htmlFor={`highestCombo-${stage}`}>Highest combo</label>
+
+        <br />
+
+        <BindingBooleanInput
+          id={`policeAllowed-${stage}`}
+          binding={policeAllowed}
+        />
+        <label htmlFor={`policeAllowed-${stage}`}>Police allowed</label>
+
+        <br />
+
+        <BindingBooleanInput id={`mapFound-${stage}`} binding={mapFound} />
+        <label htmlFor={`mapFound-${stage}`}>Map found</label>
+
+        <br />
+
+        <BindingBooleanInput id={`taxiFound-${stage}`} binding={taxiFound} />
+        <label htmlFor={`taxiFound-${stage}`}>Taxi found</label>
+
+        <br />
+
+        <BindingBooleanInput
+          id={`graffitiBombedAchievementUnlocked-${stage}`}
+          binding={graffitiBombedAchievementUnlocked}
+        />
+        <label htmlFor={`graffitiBombedAchievementUnlocked-${stage}`}>
+          Graffiti achievement unlocked
+        </label>
       </div>
     );
   }
@@ -284,6 +404,7 @@ function UnlockableSection({
 
 export default function SaveEditor({ save }: { save: SaveFile }) {
   const [character, setCharacter] = React.useState(save.character);
+  const [stage, setStage] = React.useState(save.currentStage);
 
   return (
     <div className="saveEditor">
@@ -495,6 +616,28 @@ export default function SaveEditor({ save }: { save: SaveFile }) {
         <label htmlFor="characters">Select character</label>
 
         <CharacterEditor save={save} character={character} />
+      </div>
+
+      <div>
+        <h2>Stages</h2>
+        <select
+          id="stages"
+          value={stage}
+          onChange={(e) => setStage(parseInt(e.target.value) as Stage)}
+        >
+          {Object.entries(Stage)
+            .filter(([, value]) => typeof value === "number")
+            .map(([, value]) => {
+              return (
+                <option key={value} value={value.toString()}>
+                  {getStageName(value as Stage)}
+                </option>
+              );
+            })}
+        </select>
+        <label htmlFor="stages">Select stage</label>
+
+        <StageEditor save={save} stage={stage} />
       </div>
 
       <UnlockableSection
