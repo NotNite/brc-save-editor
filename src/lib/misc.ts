@@ -1,3 +1,4 @@
+import React from "react";
 import { BinaryReader, BinaryWriter, Saveable } from "./binary";
 
 export class Vector3 implements Saveable {
@@ -23,4 +24,44 @@ export class Vector3 implements Saveable {
     bw.writeSingle(this.y);
     bw.writeSingle(this.z);
   }
+}
+
+export type Binding<T> = {
+  get: () => T;
+  set: (value: T) => void;
+};
+
+export function useBinding<T>(
+  read: () => T,
+  write: (value: T) => void
+): Binding<T> {
+  const [value, setValue] = React.useState(read());
+
+  return {
+    get: () => value,
+    set: (newValue: T) => {
+      setValue(newValue);
+      write(newValue);
+    }
+  };
+}
+
+export function useArrayBinding<T>(
+  idx: number,
+  read: () => T,
+  write: (value: T) => void
+): Binding<T> {
+  const [value, setValue] = React.useState(read());
+
+  React.useEffect(() => {
+    setValue(read());
+  }, [idx, read]);
+
+  return {
+    get: () => value,
+    set: (newValue: T) => {
+      setValue(newValue);
+      write(newValue);
+    }
+  };
 }

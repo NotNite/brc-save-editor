@@ -6,7 +6,6 @@ import { FormatType } from "./types";
 import pako from "pako";
 
 export default class SaveFile implements Saveable {
-  private static currentVersion = 3;
   private static dancesUnlockedLen = 6;
 
   saveSlotId: number = 0;
@@ -15,7 +14,6 @@ export default class SaveFile implements Saveable {
   character: Characters = Characters.NONE;
   currentStoryObjective: ObjectiveID = ObjectiveID.NONE;
 
-  // Various locks
   characterSelectLocked: boolean = false;
   boostAbilityLocked: boolean = false;
   boostpackLocked: boolean = false;
@@ -160,7 +158,7 @@ export default class SaveFile implements Saveable {
   }
 
   private writeRaw(bw: BinaryWriter) {
-    bw.writeInt32(SaveFile.currentVersion);
+    bw.writeInt32(3);
     bw.writeInt32(this.saveSlotId);
     bw.writeEnumString(Stage, this.lastStage);
     bw.writeEnumString(Stage, this.currentStage);
@@ -225,8 +223,6 @@ export default class SaveFile implements Saveable {
 }
 
 export class StageProgress implements Saveable {
-  private static currentVersion: 1;
-
   stageID: Stage = Stage.NONE;
   reputation: number = 0;
   alreadyVisited: boolean = false;
@@ -269,7 +265,7 @@ export class StageProgress implements Saveable {
   }
 
   write(bw: BinaryWriter) {
-    bw.writeInt32(StageProgress.currentVersion);
+    bw.writeInt32(3);
     bw.writeEnumString(Stage, this.stageID);
     bw.writeInt32(this.reputation);
     bw.writeBoolean(this.alreadyVisited);
@@ -332,8 +328,6 @@ export class UnlockableSaveData implements Saveable {
 }
 
 export class CharacterProgress implements Saveable {
-  private static currentVersion: 0;
-
   character: Characters = Characters.NONE;
   unlocked: boolean = false;
   outfit: number = 0;
@@ -352,7 +346,7 @@ export class CharacterProgress implements Saveable {
   }
 
   write(bw: BinaryWriter) {
-    bw.writeInt32(CharacterProgress.currentVersion);
+    bw.writeInt32(1);
     bw.writeEnumString(Characters, this.character);
     bw.writeBoolean(this.unlocked);
     bw.writeInt32(this.outfit);

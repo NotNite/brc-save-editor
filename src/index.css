@@ -1,0 +1,14 @@
+.saveEditor {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.saveEditor label {
+  margin-left: 1ch;
+}
+
+hr {
+  width: 100%;
+  margin: 1ch 0;
+}
