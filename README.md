@@ -6,5 +6,3 @@ bomb rush cyberfunk save editor for cool kids
 
 - [x] save parsing
 - [ ] better error handling for corrupted saves
-- [ ] fortune stuff
-- [ ] email stuff
